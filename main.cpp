@@ -32,7 +32,8 @@ int main()
     //     }
     // }
     MYSVM mysvm;
-    mysvm.load_file("../testdata1.csv");
+    mysvm.load_file("../test1.csv");
     mysvm.smo(100);
+    mysvm.show_somthing();
     return 0;
 }

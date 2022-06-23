@@ -13,8 +13,8 @@ private:
  */
     Eigen::MatrixXd _data;
     Eigen::MatrixXd _label;
-    float _C;
-    float _tol;
+    double _C;
+    double _tol;
 /**
  * @brief model parameter
  * @param data_num num of data (num of row)
@@ -26,7 +26,7 @@ private:
    uint _data_num;
    Eigen::MatrixXd _alphas;
    Eigen::MatrixXd _error_box;
-   float _b;
+   double _b;
 /**
  * @brief kernel
  * 
@@ -95,17 +95,17 @@ public:
   * @return int
   * @brief 计算序号为order的误差
   */
-   float calculate_error(int ord);
+   double calculate_error(int ord);
   /**
    * @brief select the max growth_aim_j
    * 
    */
-   Eigen::Vector2f select_j(int i, float Ei);
+   Eigen::Vector2d select_j(int i, double Ei);
   /**
    * @brief return the list of noneZero
    * 
    */
-   Eigen::VectorXf valid_list(Eigen::MatrixXd error_box);
+   Eigen::VectorXd valid_list(Eigen::MatrixXd error_box);
   /**
    * @brief select aa random j between 0 and _data_num
    * 
@@ -115,12 +115,26 @@ public:
    * @brief limite the label between H & L
    * 
    */
-   int clipAlpha(int label , int H , int L);
+   double clipAlpha(double label , double H , double L);
   /**
    * @brief updata error of number_k
    * 
    */
   int updata_EK(int k);
+  /**
+   * @brief select _alphas!=0
+   * 
+   */
+  Eigen::VectorXd no_zero(Eigen::MatrixXd alpha);
+  /**
+   * @brief test show
+   * 
+   */
+  void show_somthing(void)
+  {
+    cout << _alphas << endl;
+    cout << _b << endl;
+  }
 };
 
 
