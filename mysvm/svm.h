@@ -37,6 +37,11 @@ private:
  * @param _afterInit a flag
  */
    bool _afterInit = false;
+   /**
+    * @brief support vector used for prediction
+    * 
+    */
+   vector<Eigen::MatrixXd> _support_vectors;
 public:
 /**
  * @brief Construct a new MYSVM object
@@ -131,10 +136,13 @@ public:
    * 
    */
   void show_somthing(void)
+
   {
     cout << _alphas << endl;
     cout << _b << endl;
   }
+  double prediction(Eigen::MatrixXd test_datas , Eigen::MatrixXd test_labels);
+  void test(string filepath);
 };
 
 

@@ -15,25 +15,27 @@ int main()
     }
     
     HOG_FEATURE myhog;
-    // while (1)
-    // {
-    //     capture >> one_frame;
-    //     cv::resize(one_frame,one_frame,cv::Size(500,500));
-    //     // cv::imshow("hog",one_frame);
-    //     myhog.load_image(one_frame);
-    //     myhog.h_features();
-    //     myhog.v_features();
-    //     if (cv::waitKey(30) == 32)
-    //     {
-    //         if (cv::waitKey(0) == 27)
-    //         {
-    //             break;
-    //         }
-    //     }
-    // }
-    MYSVM mysvm;
-    mysvm.load_file("../test1.csv");
-    mysvm.smo(100);
-    mysvm.show_somthing();
+    while (1)
+    {
+        capture >> one_frame;
+        cv::resize(one_frame,one_frame,cv::Size(500,500));
+        // cv::imshow("hog",one_frame);
+        myhog.load_image(one_frame);
+        myhog.h_features();
+        myhog.v_features();
+        if (cv::waitKey(30) == 32)
+        {
+            if (cv::waitKey(0) == 27)
+            {
+                break;
+            }
+        }
+    }
+
+    // MYSVM mysvm;
+    // mysvm.load_file("../svmtrain.csv");
+    // mysvm.smo(20);
+    // mysvm.show_somthing();
+    // mysvm.test("../svmtest.csv");
     return 0;
 }

@@ -54,6 +54,21 @@ Eigen::MatrixXd openData(string fileToOpen)
     return Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(matrixEntries.data(), matrixRowNumber, matrixEntries.size() / matrixRowNumber);
     // return Eigen::MatrixXd();
 }
+Eigen::MatrixXd maxmin(Eigen::MatrixXd data)
+{
+    Eigen::MatrixXd temp = Eigen::MatrixXd(data.rows(),data.cols());
+    for (size_t i = 0; i < data.cols(); i++)
+    {
+        double max = data.col(i).maxCoeff();
+        double min = data.col(i).minCoeff();
+        for (int j =0 ; j < data.col(i).size(); j ++ )
+        {
+            temp.col(i)[j] = (data.col(i)[j] - min) / (max - min);
+        }
+    }
+    return temp;
+
+}
 int MYSVM::load_file(string filepath)
 {
     /*data and label*/
@@ -64,22 +79,23 @@ int MYSVM::load_file(string filepath)
     Eigen::MatrixXd data = data_label.block(0,0,rows,(cols-1));
     // cout << data << endl;
     //from (o,cols-1) to x -> rows and y -> 1
+    data = maxmin(data);
     Eigen::MatrixXd label = data_label.block(0,(cols-1),rows,1);
     // cout << label << endl;
     _init_SVM(data,label,200,0.0001);
     this->Kernel = radial_bassic_func(data,1.3);
-    // for (int i = 0; i  < 100 ; i++) /////////////test for trace()
-    // all the num of kernel(i,i) is 1, which means e^(Xi - Xi) = 1 
-    {
-        /* code */
-        // for (int j = 0; j  < 100 ; j++)
-        // {
-        //     // if (j == 50)
-        //     {
-        //         cout << Kernel << endl;
-        //     }
-        // }
-    }
+    // for (int i = 0; i  < 60 ; i++) /////////////test for trace()
+    // // all the num of kernel(i,i) is 1, which means e^(Xi - Xi) = 1 
+    // {
+    //     /* code */
+    //     for (int j = 0; j  < 60 ; j++)
+    //     {
+    //         if (j == i)
+    //         {
+    //             cout  << " kernel " << Kernel(i,j) << endl;
+    //         }
+    //     }
+    // }
     _afterInit = true;
     return 1;
 }
@@ -95,11 +111,11 @@ Eigen::MatrixXd MYSVM::radial_bassic_func(Eigen::MatrixXd data , float k)
             count_kernel(j,i) = (data.row(j) - data.row(i)) * (data.row(j) - data.row(i)).transpose();
             double temp = count_kernel(j,i);
             count_kernel(j,i) = std::exp(temp/(-1*pow(k,2)));
-            // if (i == 10 && j == 15)
-            // {
-            //     cout << " data " << data.row(j) << data.row(i) << endl;
-            //     cout << " result " << count_kernel(j,i) << endl;
-            // }
+            if (i == 10 && j == 15)
+            {
+                // cout << " data " << data.row(j) << " another " << data.row(i) << endl;
+                // cout << " result "  << temp << endl;
+            }
         }
          
     }
@@ -160,6 +176,7 @@ int MYSVM::smo(int max_for)
         {
             entire_Set = true;
         }
+        // cout << "epoch: " << num_circle <<  " label = " <<  _alphas << endl;
     }
     return 1;
 }
@@ -197,6 +214,8 @@ int MYSVM::updata_EK(int k)
 int MYSVM::innerL(int ord)
 {
     double Errori = calculate_error(ord);
+    // cout  << "ord " << ord << " Errori =  "  << Errori  << endl;
+    // cout << " alpha = " << _alphas << endl;
     bool slack_error_rate = (_label(ord,0)*Errori < -1*_tol)&&(_alphas(ord,0) < _C);
     bool occurr_the_alpha = (_label(ord,0)*Errori > _tol) && (_alphas(ord,0) > 0);
     if (slack_error_rate || occurr_the_alpha)
@@ -224,6 +243,9 @@ int MYSVM::innerL(int ord)
         double temp1 = Kernel(ord , JEJ[0]);
         double temp2 = Kernel(ord , ord);
         double temp3 = Kernel(JEJ[0] , JEJ[0]);
+        // double temp1 = _data.row(ord) * _data.row(JEJ[0]).transpose();
+        // double temp2 = _data.row(ord) * _data.row(ord).transpose();
+        // double temp3 = _data.row(JEJ[0]) * _data.row(JEJ[0]).transpose();
         double eta = 2*temp1 - temp2 - temp3;
         if (eta >= 0)//出现eta大于0？？？
         {
@@ -244,14 +266,19 @@ int MYSVM::innerL(int ord)
             return 0;
         }
         _alphas(ord,0) += _label(JEJ[0],0) * _label(ord,0)*( alpha_j_old - _alphas(JEJ[0],0) );
-        // if (abs(_alphas(ord,0)) < 0.00001)
+        // if (ord == 3)
         // {
-        //     _alphas(ord,0) = 0;
+        //     cout  << JEJ[0] << " "  << ord << " " << endl;
         // }
         updata_EK(ord);
         //update b1 and b2
-        double b1 = _b - Errori - _label(ord,0)*(_alphas(ord,0) - alpha_i_old)*temp2 - _label(JEJ[0],0)*(_alphas(JEJ[0],0) - alpha_j_old)*temp2;
+        double b1 = _b - Errori - _label(ord,0)*(_alphas(ord,0) - alpha_i_old)*temp2 - _label(JEJ[0],0)*(_alphas(JEJ[0],0) - alpha_j_old)*temp1;
         double b2 = _b - JEJ[1] - _label(ord,0)*(_alphas(ord,0) - alpha_i_old)*temp1 - _label(JEJ[0],0)*(_alphas(JEJ[0],0) - alpha_j_old)*temp3;
+        // cout  << "ord = " << ord << " b = " << _b << endl;
+        // cout << " errori " << Errori << endl;
+        // cout << "alpha " << _alphas(JEJ[0],0)  << alpha_j_old << endl;
+        // cout  << endl<< "what " << Kernel(1 ,1) << endl << endl;
+        // cout << "b1 = " << b1 << " " << "b2 = " << b2 << endl;
         if ( (0 < _alphas(ord,0)) && (_C > _alphas(ord,0)) )
         {
             _b = b1;
@@ -268,7 +295,6 @@ int MYSVM::innerL(int ord)
     }
     return 0;
 }
-//matrix
 /**
  * @brief vector multiply
  * 
@@ -281,6 +307,7 @@ Eigen::MatrixXd dot(Eigen::MatrixXd one , Eigen::MatrixXd two)
     if (one.rows() != two.rows())
     {
         cout << "error dot点乘 " << endl;
+        cout << "one is " << one.size() << " two is " << two.size() << endl;
     }
     Eigen::MatrixXd temp = Eigen::MatrixXd::Zero(one.rows(),1);
     for (int i = 0; i < one.rows(); i++)
@@ -290,10 +317,65 @@ Eigen::MatrixXd dot(Eigen::MatrixXd one , Eigen::MatrixXd two)
     return temp;
     
 }
+double MYSVM::prediction(Eigen::MatrixXd test_datas , Eigen::MatrixXd test_labels)
+{
+    Eigen::MatrixXd valid_list = no_zero(_alphas);
+    Eigen::MatrixXd temp;
+    Eigen::MatrixXd predictionr_kernel = Eigen::MatrixXd(valid_list.size(),1);
+    Eigen::MatrixXd label_alpha = Eigen::MatrixXd(valid_list.size(),1);
+    Eigen::MatrixXd w = Eigen::MatrixXd(test_datas.row(0).size(),1);
+    int num = 0;
+    for (int i =0 ; i < valid_list.size() ; i++)
+    {
+        temp = _data.row(valid_list(i));
+        _support_vectors.push_back(temp);//从后往前
+        label_alpha(i,0) = _label(valid_list(i),0)*_alphas(valid_list(i),0);
+    }
+    // cout << predictionr_kernel.size() << endl;
+    for ( int j = 0 ; j < test_datas.rows() ; j++)
+    {
+        // int j = 0;
+        for (int k = 0 ; k < _support_vectors.size() ; k++)
+        {
+            auto temp2 = (_support_vectors[k] - test_datas.row(j) ) * (_support_vectors[k] - test_datas.row(j) ).transpose();
+            predictionr_kernel(k,0) = std::exp(temp2.sum()/(-1*pow(1.3,2)));
+            // w += label_alpha(k,0) * _support_vectors[k].transpose();
+        }
+        double type = ( (predictionr_kernel.transpose() * label_alpha).sum() + _b );
+        // cout << (w.transpose() * test_datas.row(j).transpose()).size() << endl;
+        // double type = ( (w.transpose() * test_datas.row(j).transpose()).sum() + _b );
+        if (test_labels(j,0)*type  > 0)
+        {
+            num++;
+        }
+        else
+        {
+            cout  << " 错分了。。。。 " << test_labels(j,0) << " type :" << type << endl;
+            cout << j << endl;
+        }
+    }
+    // cout << num << endl;
+    return num/double(test_datas.rows());
+}
+void MYSVM::test(string filepath)
+{
+    Eigen::MatrixXd test_data_label = openData(filepath);
+    Eigen::MatrixXd test_datas = test_data_label.block(0,0,test_data_label.rows() , test_data_label.cols()-1);
+    Eigen::MatrixXd test_labels = test_data_label.block(0,test_data_label.cols()-1,test_data_label.rows() , 1);
+    test_datas = maxmin(test_datas);
+    double rate = prediction(test_datas , test_labels);
+    cout  << " 正确率为 ： " << rate << endl;
+}
+//matrix
 double MYSVM::calculate_error(int ord)
 {
     Eigen::MatrixXd temp = dot(_alphas,_label).transpose()*Kernel.col(ord);
     double Error_ord = temp.sum() + _b - _label(ord,0);
+    // if (ord == 4)
+    // {
+    //     cout << "ord= "<< ord << endl;
+    //     cout << "temp = " << temp.sum() + _b  << " b =  " << _b << " Error_ord =  " << Error_ord  << " " << endl;
+    // }
     // cout << "calculate error " << Error_ord << endl;
     // cout  << ": " << Error_ord << " " << _label(ord,0) << endl;
     return Error_ord;

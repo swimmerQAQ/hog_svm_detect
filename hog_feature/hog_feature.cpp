@@ -61,9 +61,9 @@ int HOG_FEATURE::h_features(void)
                         }   
                   }
                     );
-    cv::imshow("hog_blue",_blue_MODULES_x);
-    cv::imshow("hog_red",_red_MODULES_x);
-    cv::imshow("hog_green",_green_MODULES_x);
+    // cv::imshow("angle_feature",_angle_feature);
+    // cv::imshow("hog_red",_red_MODULES_x);
+    // cv::imshow("hog_green",_green_MODULES_x);
     return 1;
 }
 int module(int one , int two)
@@ -90,15 +90,18 @@ int HOG_FEATURE::v_features(void)
                             switch (temp)
                             {
                             case 0:
+                            /* blue */
                             vertical = strengthen_feature(_origin.ptr<uchar>(up)[ 3 * col + 0] , _origin.ptr<uchar>(down)[ 3 * col + 0]);
                             _orientention.ptr<uchar>(row)[col] = module(vertical,_angle_feature[down * (_origin.cols - 2) + col - 1]);
                             _angle_feature[down * (_origin.cols - 2) + col - 1] = atan2(vertical,_angle_feature[down * (_origin.cols - 2) + col - 1])/(2*acos(-1))*360;
                             break;
                             case 1:
+                            /* green */
                             vertical = strengthen_feature(_origin.ptr<uchar>(up)[ 3 * col + 1] , _origin.ptr<uchar>(down)[ 3 * col + 1]);
                             _angle_feature[down * (_origin.cols - 2) + col - 1] = atan2(vertical,_angle_feature[down * (_origin.cols - 2) + col - 1])/(2*acos(-1))*360;
                             break;
                             case 2:
+                            /* red */
                             vertical = strengthen_feature(_origin.ptr<uchar>(up)[ 3 * col + 2] , _origin.ptr<uchar>(down)[ 3 * col + 2]);
                             _angle_feature[down * (_origin.cols - 2) + col - 1] = atan2(vertical,_angle_feature[down * (_origin.cols - 2) + col - 1])/(2*acos(-1))*360;
                             break;
@@ -111,10 +114,10 @@ int HOG_FEATURE::v_features(void)
                         }   
                   }
                     );
-    // cout << _angle_feature.size() << "is size " << _orientention.size();
+    cout << _angle_feature.size() << "is size " << _orientention.size();
     // for (auto it : _angle_feature)
     // {
-    //     cout << it ;
+    //     cout << it  << " = angle ";
     // }
     cv::imshow("orientention",_orientention);
     return 1;
