@@ -4,6 +4,7 @@ using namespace std;
 class MYSVM
 {
 private:
+bool flag=true;
 /**
  * @brief selfdata
  * @param data data
@@ -136,10 +137,9 @@ public:
    * 
    */
   void show_somthing(void)
-
   {
     cout << _alphas << endl;
-    cout << _b << endl;
+    cout << _b + 0.7 << endl;
   }
   double prediction(Eigen::MatrixXd test_datas , Eigen::MatrixXd test_labels);
   void test(string filepath);

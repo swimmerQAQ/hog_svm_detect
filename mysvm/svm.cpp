@@ -63,6 +63,11 @@ Eigen::MatrixXd maxmin(Eigen::MatrixXd data)
         double min = data.col(i).minCoeff();
         for (int j =0 ; j < data.col(i).size(); j ++ )
         {
+            if (max - min == 0)
+            {
+                temp.col(i)[j] = 0;
+                continue;
+            }
             temp.col(i)[j] = (data.col(i)[j] - min) / (max - min);
         }
     }
@@ -71,6 +76,12 @@ Eigen::MatrixXd maxmin(Eigen::MatrixXd data)
 }
 int MYSVM::load_file(string filepath)
 {
+    double temp = 0.0001;
+    // if(filepath == "../svmtrain.csv")
+    // {
+    //     flag = false;
+    //     temp = 0.0001;
+    // }
     /*data and label*/
     auto data_label = openData(filepath);
     int rows = data_label.rows();
@@ -79,10 +90,11 @@ int MYSVM::load_file(string filepath)
     Eigen::MatrixXd data = data_label.block(0,0,rows,(cols-1));
     // cout << data << endl;
     //from (o,cols-1) to x -> rows and y -> 1
-    data = maxmin(data);
+    // data = maxmin(data);
+    // cout << data.row(50);
     Eigen::MatrixXd label = data_label.block(0,(cols-1),rows,1);
     // cout << label << endl;
-    _init_SVM(data,label,200,0.0001);
+    _init_SVM(data,label,200,temp);
     this->Kernel = radial_bassic_func(data,1.3);
     // for (int i = 0; i  < 60 ; i++) /////////////test for trace()
     // // all the num of kernel(i,i) is 1, which means e^(Xi - Xi) = 1 
@@ -90,7 +102,7 @@ int MYSVM::load_file(string filepath)
     //     /* code */
     //     for (int j = 0; j  < 60 ; j++)
     //     {
-    //         if (j == i)
+    //         // if (j == i)
     //         {
     //             cout  << " kernel " << Kernel(i,j) << endl;
     //         }
@@ -151,7 +163,7 @@ int MYSVM::smo(int max_for)
             for (int i = 0; i < this->_data_num ; i++)
             {
                 alphaPairs_Change += innerL(i);
-                cout << "search in all data. epoch:"<< num_circle << " , alpha_changes:" << alphaPairs_Change << endl;
+                // cout << "search in all data. epoch:"<< num_circle << " , alpha_changes:" << alphaPairs_Change << endl;
             }
             num_circle++;
         }
@@ -162,7 +174,7 @@ int MYSVM::smo(int max_for)
             for (int i =0 ; i < list_none_zero_alpha.size() ; i++)
             {
                 alphaPairs_Change += innerL(int(list_none_zero_alpha(i)));
-                cout << "search in alpha!=0; epoch:" << num_circle << " , alpha_changes:" << alphaPairs_Change<< endl;
+                // cout << "search in alpha!=0; epoch:" << num_circle << " , alpha_changes:" << alphaPairs_Change<< endl;
             }
             num_circle++;
         }
@@ -344,25 +356,31 @@ double MYSVM::prediction(Eigen::MatrixXd test_datas , Eigen::MatrixXd test_label
         double type = ( (predictionr_kernel.transpose() * label_alpha).sum() + _b );
         // cout << (w.transpose() * test_datas.row(j).transpose()).size() << endl;
         // double type = ( (w.transpose() * test_datas.row(j).transpose()).sum() + _b );
+        // if(flag == false)
+        // {
+        //     type = type - 0.731;
+        // }
         if (test_labels(j,0)*type  > 0)
         {
             num++;
+            // cout << "correct : " << type << endl;
+            cout << "把第 " << j << " 个样本正确分类了。。。。应该是 " << test_labels(j,0) << " 分类样本是 type > 0  : " << type << endl;
         }
         else
         {
-            cout  << " 错分了。。。。 " << test_labels(j,0) << " type :" << type << endl;
+            cout << "把第 " << j << " 个样本错分了。。。。应该是 " << test_labels(j,0) << " 分类样本是 type < 0  : " << type << endl;
             cout << j << endl;
         }
     }
     // cout << num << endl;
-    return num/double(test_datas.rows());
+    return double(num)/double(test_datas.rows());
 }
 void MYSVM::test(string filepath)
 {
     Eigen::MatrixXd test_data_label = openData(filepath);
     Eigen::MatrixXd test_datas = test_data_label.block(0,0,test_data_label.rows() , test_data_label.cols()-1);
     Eigen::MatrixXd test_labels = test_data_label.block(0,test_data_label.cols()-1,test_data_label.rows() , 1);
-    test_datas = maxmin(test_datas);
+    // test_datas = maxmin(test_datas);
     double rate = prediction(test_datas , test_labels);
     cout  << " 正确率为 ： " << rate << endl;
 }

@@ -1,4 +1,5 @@
 #include <opencv2/opencv.hpp>
+#include <eigen3/Eigen/Dense>
 class HOG_FEATURE
 {
 private:
@@ -18,7 +19,22 @@ private:
      * @brief angle features
      * 
      */
-    std::vector<int> _angle_feature;
+    std::vector<double> _angle_feature;
+    /**
+     * @brief count hog
+     * 
+     */
+    std::vector<std::vector<Eigen::MatrixXd>> _hog_box;
+    /**
+     * @brief train_set num
+     * 
+     */
+    int _train_num;
+    /**
+     * @brief base
+     * 
+     */
+    Eigen::MatrixXd _base;
 public:
     HOG_FEATURE(/* args */){};
     ~HOG_FEATURE(){};
@@ -31,6 +47,22 @@ public:
      * @brief find features
      * @brief vertical horizontal
      */
+    int pre_feature(void);
     int h_features(void);
     int v_features(void);
+    /**
+     * @brief scrap_frame into 16 frames
+     * 
+     */
+    int scrap_frame(void);
+    /**
+     * @brief test show scrap_frame
+     * 
+     */
+    void test_show_hog(std::string filename, int num);
+    /**
+     * @brief num of train set
+     * 
+     */
+    void train_set(int num){_train_num = num;_base = Eigen::MatrixXd::Zero(_train_num,901);};
 };
